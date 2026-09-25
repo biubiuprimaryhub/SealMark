@@ -1,0 +1,72 @@
+## Avalonia + C# + Visual Studio .gitignore
+
+# ---- 编译输出 ----
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+[Bb]uild/
+
+# ---- Visual Studio 用户文件 ----
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ---- Visual Studio 工作区文件 ----
+*.dbmdl
+*.jfm
+*.pfx
+*.cache
+
+# ---- Rider / JetBrains ----
+.idea/
+*.sln.iml
+
+# ---- NuGet 包 ----
+packages/
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+
+# ---- 测试相关 ----
+TestResults/
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+
+# ---- 日志与临时文件 ----
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ---- 系统文件 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Avalonia 特定 ----
+*.avalonia
+*.axaml.cs.bak
+
+# ---- 其他常见忽略 ----
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+
+# ---- 发布输出 ----
+publish/
+Publish/
+*.Publish.xml

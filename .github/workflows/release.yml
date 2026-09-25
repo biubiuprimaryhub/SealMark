@@ -1,0 +1,170 @@
+name: SealMark Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  CSPROJ: src/SealMark.App/SealMark.App.csproj
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            artifact_name: SealMark-win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact_name: SealMark-linux-x64
+          - os: macos-15-intel
+            rid: osx-x64
+            artifact_name: SealMark-osx-x64
+          - os: macos-15
+            rid: osx-arm64
+            artifact_name: SealMark-osx-arm64
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # Windows / Linux 发布 + 删符号 + 改名
+      - name: Publish for Windows/Linux
+        if: matrix.os != 'macos-15-intel' && matrix.os != 'macos-15'
+        run: |
+          dotnet publish ${{ env.CSPROJ }} \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -p:PublishAot=true \
+            -p:StripSymbols=true \
+            -p:IlcOptimizationLevel=Speed \
+            -o ./publish
+
+          # 删除调试符号文件
+          rm -f ./publish/*.dbg ./publish/*.pdb
+
+          # 发布后改名
+          if [ "${{ matrix.rid }}" = "win-x64" ]; then
+            mv ./publish/SealMark.App.exe ./publish/SealMark.exe
+            tar -a -cf SealMark-win-x64.zip -C publish .
+          else
+            mv ./publish/SealMark.App ./publish/SealMark
+            tar -czf SealMark-linux-x64.tar.gz -C publish .
+          fi
+        shell: bash
+
+      # macOS 发布 + 删符号 + 改名 + 打包
+      - name: Publish and Package for macOS
+        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-15'
+        run: |
+          dotnet publish ${{ env.CSPROJ }} \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -p:PublishAot=true \
+            -p:StripSymbols=true \
+            -p:IlcOptimizationLevel=Speed \
+            -o ./publish
+
+          # 删除调试符号文件（macOS 是 .dSYM 文件夹）
+          rm -rf ./publish/*.dSYM
+
+          mkdir -p SealMark.app/Contents/{MacOS,Resources}
+          mv ./publish/SealMark.App ./publish/SealMark
+          cp ./publish/SealMark SealMark.app/Contents/MacOS/SealMark
+          cp Info.plist SealMark.app/Contents/ || true
+          if [ -f SealMark.icns ]; then
+            cp SealMark.icns SealMark.app/Contents/Resources/
+          fi
+
+          chmod +x SealMark.app/Contents/MacOS/SealMark
+          codesign --force --deep --sign "-" --options runtime SealMark.app
+          xattr -cr SealMark.app
+          hdiutil create -volname "SealMark" \
+            -srcfolder SealMark.app \
+            -ov -format UDZO SealMark.dmg
+
+      # 上传 artifact
+      - name: Upload artifact (Windows/Linux)
+        if: matrix.os != 'macos-15-intel' && matrix.os != 'macos-15'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: SealMark-${{ matrix.rid }}.${{ matrix.rid == 'win-x64' && 'zip' || 'tar.gz' }}
+          retention-days: 1
+
+      - name: Upload artifact (macOS)
+        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-15'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: SealMark.dmg
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SealMark-win-x64
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SealMark-linux-x64
+
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SealMark-osx-x64
+          path: osx-x64
+
+      - name: Download macOS arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SealMark-osx-arm64
+          path: osx-arm64
+
+      - name: Rename macOS DMG files
+        run: |
+          mv osx-x64/SealMark.dmg SealMark-osx-x64.dmg
+          mv osx-arm64/SealMark.dmg SealMark-osx-arm64.dmg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            SealMark-win-x64.zip
+            SealMark-linux-x64.tar.gz
+            SealMark-osx-x64.dmg
+            SealMark-osx-arm64.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

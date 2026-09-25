@@ -1,0 +1,165 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SealMark.App.ViewModels"
+        xmlns:uc="using:SealMark.App.Views"
+        xmlns:control="using:SealMark.App.Controls"
+        xmlns:converter="using:SealMark.App.Converters"
+        mc:Ignorable="d" d:DesignWidth="1300" d:DesignHeight="600"
+        x:Class="SealMark.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1500"
+        Height="800"
+        Title="铃印-水印工具" WindowStartupLocation="CenterScreen"
+        Icon="avares://SealMark.App/Assets/icon/icon.png">
+    <Design.DataContext>
+        <vm:MainWindowViewModel></vm:MainWindowViewModel>
+    </Design.DataContext>
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="Padding" Value="0,10"></Setter>
+            <Setter Property="FontSize" Value="14"></Setter>
+            <Setter Property="FontWeight" Value="Bold"></Setter>
+            <Setter Property="CornerRadius" Value="10"></Setter>
+            <Setter Property="Width" Value="130"></Setter>
+            <Setter Property="LetterSpacing" Value="1"></Setter>
+        </Style>
+        <Style Selector="Button StackPanel">
+            <Setter Property="Orientation" Value="Horizontal"></Setter>
+            <Setter Property="Spacing" Value="5"></Setter>
+        </Style>
+        <Style Selector="Button PathIcon">
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            <Setter Property="Width" Value="13"></Setter>
+            <Setter Property="Height" Value="13"></Setter>
+        </Style>
+        <Style Selector="TextBlock.InfoText">
+            <Setter Property="FontSize" Value="10"></Setter>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey5}"></Setter>
+        </Style>
+        <Style Selector="Border.ShowBox">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey1}"></Setter>
+            <Setter Property="Margin" Value="0,30,0,0"></Setter>
+            <Setter Property="CornerRadius" Value="0,0,0,0"></Setter>
+            <Setter Property="BoxShadow" Value="{DynamicResource SemiShadowElevated}"></Setter>
+        </Style>
+    </Window.Styles>
+    <Grid ColumnDefinitions="150,*,250" Name="MainGrid">
+        <StackPanel Grid.Column="0" Orientation="Vertical" Margin="10,20,10,20" Spacing="13">
+            <Button Classes="Primary" Theme="{DynamicResource SolidButton}"
+                    Command="{Binding AddImagesCommand}">
+                <StackPanel>
+                    <PathIcon Data="{StaticResource SemiIconPlusStroked}"></PathIcon>
+                    <TextBlock Text="添加图片"></TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Classes="Tertiary" Command="{Binding ExportImagesCommand}">
+                <StackPanel>
+                    <PathIcon Data="{StaticResource SemiIconSaveStroked}"></PathIcon>
+                    <TextBlock Text="保存全部"></TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Classes="Danger" Theme="{DynamicResource OutlineButton}"
+                    Command="{Binding ClearImagesCommand}">
+                <StackPanel>
+                    <PathIcon Data="{StaticResource SemiIconDeleteStroked}"></PathIcon>
+                    <TextBlock Text="清空列表"></TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Classes="Tertiary">
+                <StackPanel>
+                    <PathIcon Data="{StaticResource SemiIconSunStroked}"></PathIcon>
+                    <TextBlock Text="主题切换"></TextBlock>
+                </StackPanel>
+                <Button.Flyout>
+                    <MenuFlyout Placement="Right">
+                        <MenuItem Header="Auto" Command="{Binding ChangeThemeCommand}" CommandParameter="Default"></MenuItem>
+                        <MenuItem Header="Light" Command="{Binding ChangeThemeCommand}" CommandParameter="Light"></MenuItem>
+                        <MenuItem Header="Dark" Command="{Binding ChangeThemeCommand}" CommandParameter="Dark"></MenuItem>
+                    </MenuFlyout>
+                </Button.Flyout>
+            </Button>
+            <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource SemiGrey1}" Margin="0,100,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="3" HorizontalAlignment="Center" Margin="0,16">
+                    <TextBlock Text="共" Classes="InfoText"></TextBlock>
+                    <TextBlock Text="{Binding WatermarkImageItemList.Count}" Classes="InfoText"></TextBlock>
+                    <TextBlock Text="张图片" Classes="InfoText"></TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <Border Grid.Column="1" Background="{DynamicResource SemiGrey0}"></Border>
+        <ScrollViewer Grid.Column="1">
+            <ItemsRepeater ItemsSource="{Binding WatermarkImageItemList}">
+                <ItemsRepeater.Layout>
+                    <StackLayout />
+                </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate>
+                    <Border Width="{Binding ShowBoxWidth}"
+                            Height="{Binding ShowBoxHeight}"
+                            Classes="ShowBox">
+                        <Grid RowDefinitions="30,*" ColumnDefinitions="*,50">
+                            <Border Background="{DynamicResource SemiColorBackground0}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"></Border>
+                            <TextBlock Text="{Binding FileName}" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="5,0,0,0"></TextBlock>
+                            <Button Grid.Row="0" Grid.Column="1" Classes="Danger" Theme="{DynamicResource OutlineButton}" 
+                                    Height="29" Width="50"
+                                    Command="{Binding #MainGrid.DataContext.DeleteImageCommand}" Padding="0"
+                                    CornerRadius="0,0,0,0"
+                                    CommandParameter="{Binding}" Content="移除" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="12">
+                            </Button>
+                            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Width="{Binding PreviewSource.Size.Width}"
+                                    Height="{Binding PreviewSource.Size.Height}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top">
+                                <Grid>
+                                    <!-- 下层：显示缩放后的原图 -->
+                                    <Image Source="{Binding PreviewSource}"/>
+                                    <control:WatermarkOverlayControl 
+                                        WatermarkText="{Binding #MainGrid.DataContext.WatermarkProperty.WatermarkText}"
+                                        FontSize="{Binding #MainGrid.DataContext.WatermarkProperty.MarkTextSize}"
+                                        TextColor="{Binding #MainGrid.DataContext.WatermarkProperty.MarkColor,Converter={x:Static converter:ColorToSolidBrushConverter.Instance}}"
+                                        Angle="{Binding #MainGrid.DataContext.WatermarkProperty.MarkRotation}"
+                                        PlacementMode="{Binding #MainGrid.DataContext.WatermarkProperty.MarkPlacementMode}"
+                                        OriginalImageWidth="{Binding OriginalWidth}"
+                                        OriginalImageHeight="{Binding OriginalHeight}"
+                                        ActualImageWidth="{Binding PreviewSource.Size.Width}"
+                                        ActualImageHeight="{Binding PreviewSource.Size.Height}"
+                                        TileXGap="{Binding #MainGrid.DataContext.WatermarkProperty.XGap}"
+                                        TileYGap="{Binding #MainGrid.DataContext.WatermarkProperty.YGap}"
+                                        IsHitTestVisible="False"></control:WatermarkOverlayControl>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+        <StackPanel Grid.Column="2" Orientation="Vertical" Margin="10,20,10,20" Spacing="13">
+            <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource SemiGrey1}" Padding="0,0,0,10">
+                <TextBlock Text="参数设置" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource SemiGrey5}"></TextBlock>
+            </Border>
+            <uc:PropertySettingsUserControl DataContext="{Binding WatermarkProperty}"></uc:PropertySettingsUserControl>
+        </StackPanel>
+        <Panel Grid.Column="0" Grid.ColumnSpan="3" Background="#80000000" ZIndex="9999" IsVisible="{Binding ProgressShow}">
+            <Border Background="{DynamicResource SemiColorBackground4}"
+                CornerRadius="8"
+                Padding="30,20"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <StackPanel Spacing="12">
+                    <ProgressBar BorderThickness="16"
+                                 Width="150" Height="150" ShowProgressText="True"
+                                 Maximum="{Binding ProgressMaxValue}"
+                                 Minimum="{Binding ProgressMinValue}"
+                                 Value="{Binding ProgressValue}"
+                                 Theme="{DynamicResource ProgressRing}"  />
+                    <TextBlock Text="{Binding ProgressTextTip}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Panel>
+    </Grid>
+</Window>

@@ -1,0 +1,61 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SealMark.App.ViewModels"
+             x:DataType="vm:PropertySettingsUserControlViewModel"
+             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="450"
+             x:Class="SealMark.App.Views.PropertySettingsUserControl">
+    <UserControl.Styles>
+        <Style Selector="StackPanel.FormItem">
+            <Setter Property="Orientation" Value="Vertical"></Setter>
+            <Setter Property="Spacing" Value="5"></Setter>
+        </Style>
+        <Style Selector="StackPanel.FormItem TextBlock">
+            <Setter Property="FontSize" Value="13"></Setter>
+        </Style>
+    </UserControl.Styles>
+  <StackPanel Orientation="Vertical" Spacing="10">
+      <StackPanel Classes="FormItem">
+          <TextBlock Text="水印文字"></TextBlock>
+          <TextBox Text="{Binding WatermarkText}"></TextBox>
+      </StackPanel>
+      <StackPanel Classes="FormItem" HorizontalAlignment="Left">
+          <TextBlock Text="颜色"></TextBlock>
+          <ColorPicker Theme="{DynamicResource HexSimpleColorPicker}" Color="{Binding MarkColor}" />
+      </StackPanel>
+      <StackPanel Classes="FormItem">
+          <TextBlock Text="旋转角度"></TextBlock>
+          <Grid RowDefinitions="*,5,25" ColumnDefinitions="40,*,40">
+              <Slider Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Minimum="-180" Maximum="180" Value="{Binding MarkRotation}"></Slider>
+              <TextBlock Text="-180°" Grid.Row="2" Grid.Column="0" FontSize="12" Foreground="{DynamicResource SemiGrey5}"></TextBlock>
+              <!--字符串以数字开头需要加{}占位符-->
+              <TextBlock Text="{Binding MarkRotation,StringFormat='{}{0:F0}°'}" Grid.Row="2" Grid.Column="1" FontSize="12" Foreground="{DynamicResource SemiGrey5}" HorizontalAlignment="Center"></TextBlock>
+              <TextBlock Text="180°" Grid.Row="2" Grid.Column="2" FontSize="12" Foreground="{DynamicResource SemiGrey5}" HorizontalAlignment="Right"></TextBlock>
+          </Grid>
+      </StackPanel>
+      <StackPanel Classes="FormItem">
+          <TextBlock Text="字号"></TextBlock>
+          <NumericUpDown Increment="1" FormatString="F0" Value="{Binding MarkTextSize}" Minimum="1" Maximum="1000"/>
+      </StackPanel>
+      <StackPanel Classes="FormItem">
+          <TextBlock Text="位置模式"></TextBlock>
+          <ComboBox Classes="Bordered" SelectedIndex="{Binding MarkPlacementMode}" HorizontalAlignment="Stretch" Name="PlaceModeCb">
+              <ComboBoxItem>居中</ComboBoxItem>
+              <ComboBoxItem>平铺全屏</ComboBoxItem>
+              <ComboBoxItem>左上角</ComboBoxItem>
+              <ComboBoxItem>右上角</ComboBoxItem>
+              <ComboBoxItem>右下角</ComboBoxItem>
+              <ComboBoxItem>左下角</ComboBoxItem>
+          </ComboBox>
+      </StackPanel>
+      <StackPanel Classes="FormItem" IsVisible="{Binding GapItemVisible}">
+          <TextBlock Text="水平平铺间距"></TextBlock>
+          <NumericUpDown Increment="1" FormatString="F0" Value="{Binding XGap}" Minimum="1" Maximum="1000" />
+      </StackPanel>
+      <StackPanel Classes="FormItem" IsVisible="{Binding GapItemVisible}">
+          <TextBlock Text="垂直平铺间距"></TextBlock>
+          <NumericUpDown Increment="1" FormatString="F0" Value="{Binding YGap}" Minimum="1" Maximum="1000"/>
+      </StackPanel>
+  </StackPanel>
+</UserControl>

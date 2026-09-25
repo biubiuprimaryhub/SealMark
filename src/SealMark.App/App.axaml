@@ -1,0 +1,20 @@
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:semi="https://irihi.tech/semi"
+             x:Class="SealMark.App.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <semi:SemiTheme Locale="zh-CN" />
+        <semi:SemiPopupAnimations />
+        <StyleInclude Source="avares://Semi.Avalonia.ColorPicker/Index.axaml" />
+    </Application.Styles>
+    <Application.Resources>
+        <!-- 1. 注册你的自定义字体，并给它起个别名 -->
+        <FontFamily x:Key="MyCustomFontFamily">avares://SealMark.App/Assets/Fonts/#Alibaba PuHuiTi 3.0</FontFamily>
+        <!-- 2. 核心：重写Theme 内部使用的核心字体资源键 -->
+        <!-- 这会直接改变诸如 Button、TextBox、Window 等所有控件的默认引用的 FontFamily 资源 -->
+        <StaticResource x:Key="ContentControlThemeFontFamily" ResourceKey="MyCustomFontFamily" />
+    </Application.Resources>
+</Application>
