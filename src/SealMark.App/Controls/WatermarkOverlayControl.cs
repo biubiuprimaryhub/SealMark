@@ -18,14 +18,27 @@ namespace SealMark.App.Controls
         static WatermarkOverlayControl()
         {
             AffectsRender<WatermarkOverlayControl>(
+                WatermarkTypeIndexProperty,
                 WatermarkTextProperty,
+                WatermarkImgProperty,
                 FontSizeProperty,
                 TextColorProperty,
                 AngleProperty,
                 PlacementModeProperty,
                 TileXGapProperty,
-                TileYGapProperty
+                TileYGapProperty,
+                WatermarkImgScaleFactorProperty,
+                WatermarkImgOpacityProperty
                 );
+        }
+
+        public static readonly StyledProperty<int> WatermarkTypeIndexProperty =
+            AvaloniaProperty.Register<WatermarkOverlayControl, int>(nameof(WatermarkTypeIndex));
+
+        public int WatermarkTypeIndex
+        {
+            get => GetValue(WatermarkTypeIndexProperty);
+            set => SetValue(WatermarkTypeIndexProperty, value);
         }
 
         public static readonly StyledProperty<string> WatermarkTextProperty =
@@ -35,6 +48,15 @@ namespace SealMark.App.Controls
         {
             get => GetValue(WatermarkTextProperty);
             set => SetValue(WatermarkTextProperty, value);
+        }
+
+        public static readonly StyledProperty<IImage> WatermarkImgProperty =
+            AvaloniaProperty.Register<WatermarkOverlayControl, IImage>(nameof(WatermarkImg));
+
+        public IImage WatermarkImg
+        {
+            get => GetValue(WatermarkImgProperty);
+            set => SetValue(WatermarkImgProperty, value);
         }
 
         public static readonly StyledProperty<double> FontSizeProperty =
@@ -128,16 +150,35 @@ namespace SealMark.App.Controls
             set => SetValue(ActualImageHeightProperty, value);
         }
 
+        public static readonly StyledProperty<double> WatermarkImgScaleFactorProperty =
+            AvaloniaProperty.Register<WatermarkOverlayControl, double>(nameof(WatermarkImgScaleFactor),1.0);
+
+        public double WatermarkImgScaleFactor
+        {
+            get => GetValue(WatermarkImgScaleFactorProperty);
+            set => SetValue(WatermarkImgScaleFactorProperty, value);
+        }
+
+        public static readonly StyledProperty<double> WatermarkImgOpacityProperty =
+            AvaloniaProperty.Register<WatermarkOverlayControl, double>(nameof(WatermarkImgOpacity), 1.0);
+
+        public double WatermarkImgOpacity
+        {
+            get => GetValue(WatermarkImgOpacityProperty);
+            set => SetValue(WatermarkImgOpacityProperty, value);
+        }
+
 
         public override void Render(DrawingContext context)
         {
             base.Render(context);
-            if (string.IsNullOrEmpty(WatermarkText) || TextColor == null) return;
             if (OriginalImageWidth <= 0 || OriginalImageHeight <= 0) return;
 
             WatermarkHelper.DrawWatermark(context,
                 new WatermarkParameter(
+                    WatermarkTypeIndex,
                     WatermarkText,
+                    WatermarkImg,
                     TextColor,
                     Angle,
                     FontSize,
@@ -145,7 +186,9 @@ namespace SealMark.App.Controls
                     new Size(OriginalImageWidth, OriginalImageHeight),
                     new Size(ActualImageWidth, ActualImageHeight),
                     TileXGap,
-                    TileYGap
+                    TileYGap,
+                    WatermarkImgScaleFactor,
+                    WatermarkImgOpacity
                     ));
         }
     }

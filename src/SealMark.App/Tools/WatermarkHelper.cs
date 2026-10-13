@@ -17,74 +17,124 @@ namespace SealMark.App.Tools
         /// <param name="watermarkParameter">水印参数</param>
         public static void DrawWatermark(DrawingContext context, WatermarkParameter watermarkParameter)
         {
-            if (string.IsNullOrEmpty(watermarkParameter.WatermarkText) || watermarkParameter.MarkColor == null) return;
+            if (watermarkParameter.WatermarkTypeIndex == -1) return;
+            if (watermarkParameter.WatermarkTypeIndex == 0 && (string.IsNullOrEmpty(watermarkParameter.WatermarkText) || watermarkParameter.MarkColor == null)) return;
+            if (watermarkParameter.WatermarkTypeIndex == 1 && watermarkParameter.WatermarkImg == null) return;
             if (watermarkParameter.ImageSize.Width <= 0 || watermarkParameter.ImageSize.Height <= 0) return;
 
             // 计算预览缩放比例
-            double previewWidth = 0.0, previewHeight=0.0;
-            if (watermarkParameter.PreviewSize==default)
+            double previewWidth = 0.0, previewHeight = 0.0;
+            if (watermarkParameter.PreviewSize == default)
             {
                 previewWidth = watermarkParameter.ImageSize.Width;
-                previewHeight= watermarkParameter.ImageSize.Height;
+                previewHeight = watermarkParameter.ImageSize.Height;
             }
             else
             {
-                previewWidth=watermarkParameter.PreviewSize.Width;
+                previewWidth = watermarkParameter.PreviewSize.Width;
                 previewHeight = watermarkParameter.PreviewSize.Height;
             }
             double scaleX = previewWidth / watermarkParameter.ImageSize.Width;
             double scaleY = previewHeight / watermarkParameter.ImageSize.Height;
             double minScale = Math.Min(scaleX, scaleY);
-            var typeface = new Typeface(Application.Current?.Resources["MyCustomFontFamily"] as FontFamily);
-            var formattedText = new FormattedText(
-                watermarkParameter.WatermarkText,
-                CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                typeface,
-                watermarkParameter.MarkTextSize * minScale,// 字体按缩放比例调整
-                watermarkParameter.MarkColor
-            );
-
-            var textWidth = formattedText.Width;
-            var textHeight = formattedText.Height;
-
-
-            // "半宽半高"，循环里只用来算中心点
-            double halfW = textWidth / 2;
-            double halfH = textHeight / 2;
-
-
-            // 根据位置模式计算水印位置
-            var positions = CalculatePositions(watermarkParameter.MarkPlacementMode
-                , watermarkParameter.ImageSize.Width
-                , watermarkParameter.ImageSize.Height
-                , textWidth / scaleX
-                , textHeight / scaleY
-                , scaleX, scaleY
-                ,watermarkParameter.XGap
-                ,watermarkParameter.YGap);
-            using (context.PushClip(new Rect(0, 0, previewWidth, previewHeight)))
+            if (watermarkParameter.WatermarkTypeIndex == 0)//水印文字
             {
+                var typeface = new Typeface(Application.Current?.Resources["MyCustomFontFamily"] as FontFamily);
+                var formattedText = new FormattedText(
+                    watermarkParameter.WatermarkText,
+                    CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    typeface,
+                    watermarkParameter.MarkTextSize * minScale,// 字体按缩放比例调整
+                    watermarkParameter.MarkColor
+                );
 
-                foreach (var pos in positions)
+                var textWidth = formattedText.Width;
+                var textHeight = formattedText.Height;
+
+
+                // "半宽半高"，循环里只用来算中心点
+                double halfW = textWidth / 2;
+                double halfH = textHeight / 2;
+
+
+                // 根据位置模式计算水印位置
+                var positions = CalculatePositions(watermarkParameter.MarkPlacementMode
+                    , watermarkParameter.ImageSize.Width
+                    , watermarkParameter.ImageSize.Height
+                    , textWidth / scaleX
+                    , textHeight / scaleY
+                    , scaleX, scaleY
+                    , watermarkParameter.XGap
+                    , watermarkParameter.YGap);
+                using (context.PushClip(new Rect(0, 0, previewWidth, previewHeight)))
                 {
-                    double x = pos.X * scaleX;
-                    double y = pos.Y * scaleY;
 
-                    // 每个水印的中心点
-                    double centerX = x + halfW;
-                    double centerY = y + halfH;
-
-                    var transform = new RotateTransform(watermarkParameter.MarkRotation, centerX, centerY).Value;
-
-                    using (context.PushTransform(transform))
+                    foreach (var pos in positions)
                     {
-                        context.DrawText(formattedText, new Point(x, y));
+                        double x = pos.X * scaleX;
+                        double y = pos.Y * scaleY;
+
+                        // 每个水印的中心点
+                        double centerX = x + halfW;
+                        double centerY = y + halfH;
+
+                        var transform = new RotateTransform(watermarkParameter.MarkRotation, centerX, centerY).Value;
+
+                        using (context.PushTransform(transform))
+                        {
+                            context.DrawText(formattedText, new Point(x, y));
+                        }
+                    }
+                }
+            }
+            else if (watermarkParameter.WatermarkTypeIndex == 1)//水印图片
+            {
+                var scaleFactorWidth = watermarkParameter.WatermarkImg.Size.Width * watermarkParameter.WatermarkImgScaleFactor;
+                var scaleFactorHeight = watermarkParameter.WatermarkImg.Size.Height * watermarkParameter.WatermarkImgScaleFactor;
+                var imgWidth = scaleFactorWidth * scaleX;
+                var imgHeight = imgWidth / watermarkParameter.WatermarkImg.Size.AspectRatio;
+                // "半宽半高"，循环里只用来算中心点
+                double halfW = imgWidth / 2;
+                double halfH = imgHeight / 2;
+
+
+                // 根据位置模式计算水印位置
+                var positions = CalculatePositions(watermarkParameter.MarkPlacementMode
+                    , watermarkParameter.ImageSize.Width
+                    , watermarkParameter.ImageSize.Height
+                    , scaleFactorWidth
+                    , scaleFactorHeight
+                    , scaleX, scaleY
+                    , watermarkParameter.XGap
+                    , watermarkParameter.YGap);
+                using (context.PushClip(new Rect(0, 0, previewWidth, previewHeight)))
+                {
+
+                    foreach (var pos in positions)
+                    {
+                        double x = pos.X * scaleX;
+                        double y = pos.Y * scaleY;
+
+                        // 每个水印的中心点
+                        double centerX = x + halfW;
+                        double centerY = y + halfH;
+
+                        var transform = new RotateTransform(watermarkParameter.MarkRotation, centerX, centerY).Value;
+
+                        using (context.PushTransform(transform))
+                        {
+                            using (context.PushOpacity(1 - watermarkParameter.WatermarkImgOpacity))
+                            {
+                                context.DrawImage(watermarkParameter.WatermarkImg,
+                                new Rect(x, y, imgWidth, imgHeight));
+                            }
+                        }
                     }
                 }
             }
         }
-        public static Point[] CalculatePositions(int mode, double imageWidth, double imageHeight, double textWidth, double textHeight, double scaleX, double scaleY,int xGap,int yGap)
+        public static Point[] CalculatePositions(int mode, double imageWidth, double imageHeight, double textWidth, double textHeight, double scaleX, double scaleY, int xGap, int yGap)
         {
             switch (mode)
             {
@@ -96,8 +146,8 @@ namespace SealMark.App.Tools
 
                 case 1: // 平铺全屏
                     // 平铺间距 = 文字尺寸 + 间隙（基于原图尺寸计算）
-                    double tileGapX = (textWidth  + xGap);
-                    double tileGapY = (textHeight  + yGap);
+                    double tileGapX = (textWidth + xGap);
+                    double tileGapY = (textHeight + yGap);
                     var cols = (int)Math.Ceiling(imageWidth / tileGapX) + 2;
                     var rows = (int)Math.Ceiling(imageHeight / tileGapY) + 2;
                     var positions = new Point[cols * rows];
@@ -114,7 +164,7 @@ namespace SealMark.App.Tools
                             if (x >= imageWidth || y >= imageHeight)
                                 continue;
 
-                            positions[idx++] = new Point(x , y );
+                            positions[idx++] = new Point(x, y);
                         }
                     }
                     var results = new Point[idx];

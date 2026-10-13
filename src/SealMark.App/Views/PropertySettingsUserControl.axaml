@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SealMark.App.ViewModels"
              x:DataType="vm:PropertySettingsUserControlViewModel"
-             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="600"
              x:Class="SealMark.App.Views.PropertySettingsUserControl">
     <UserControl.Styles>
         <Style Selector="StackPanel.FormItem">
@@ -14,15 +14,48 @@
         <Style Selector="StackPanel.FormItem TextBlock">
             <Setter Property="FontSize" Value="13"></Setter>
         </Style>
+        <Style Selector="TextBox.ScrollSelectedText">
+            <Setter Property="TextWrapping" Value="NoWrap"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            <Setter Property="IsReadOnly" Value="True"></Setter>
+            <Setter Property="AcceptsReturn" Value="False"></Setter>
+            <Setter Property="BorderThickness" Value="0"></Setter>
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="Focusable" Value="False"></Setter>
+            <Setter Property="CaretBrush" Value="Transparent"></Setter>
+        </Style>
+        <Style Selector="TextBox.ScrollSelectedText:pointerover /template/ Border">
+                <Setter Property="Background" Value="Transparent"></Setter>
+        </Style>
     </UserControl.Styles>
   <StackPanel Orientation="Vertical" Spacing="10">
       <StackPanel Classes="FormItem">
-          <TextBlock Text="水印文字"></TextBlock>
-          <TextBox Text="{Binding WatermarkText}"></TextBox>
+          <TabControl SelectedIndex="{Binding WatermarkTypeIndex}">
+              <TabItem Header="水印文字">
+                  <TextBox Text="{Binding WatermarkText}" Margin="0,5,0,0"></TextBox>
+              </TabItem>
+              <TabItem Header="水印图片">
+                  <Grid ColumnDefinitions="45,*" Margin="0,5,0,0">
+                      <Button Content="选择" Classes="Samll" Width="40" Padding="2" CornerRadius="1" Grid.Column="0"
+                              Command="{Binding SelectWatermarkPNGCommand}"></Button>
+                      <TextBox Text="{Binding WatermarkImgPath}" Grid.Column="1" Classes="ScrollSelectedText"></TextBox>
+                  </Grid>
+              </TabItem>
+          </TabControl>
+          
       </StackPanel>
-      <StackPanel Classes="FormItem" HorizontalAlignment="Left">
+      <StackPanel Classes="FormItem" HorizontalAlignment="Left" IsVisible="{Binding WatermarkTextItemVisible}">
           <TextBlock Text="颜色"></TextBlock>
           <ColorPicker Theme="{DynamicResource HexSimpleColorPicker}" Color="{Binding MarkColor}" />
+      </StackPanel>
+      <StackPanel Classes="FormItem" IsVisible="{Binding WatermarkImgItemVisible}">
+          <TextBlock Text="透明度"></TextBlock>
+          <Grid RowDefinitions="*,5,25" ColumnDefinitions="40,*,40">
+              <Slider Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Minimum="0" Maximum="1" Value="{Binding WatermarkImgOpacity}"></Slider>
+              <TextBlock Text="不透明" Grid.Row="2" Grid.Column="0" FontSize="12" Foreground="{DynamicResource SemiGrey5}"></TextBlock>
+              <TextBlock Text="{Binding WatermarkImgOpacity,StringFormat='0.00'}" Grid.Row="2" Grid.Column="1" FontSize="12" Foreground="{DynamicResource SemiGrey5}" HorizontalAlignment="Center"></TextBlock>
+              <TextBlock Text="透明" Grid.Row="2" Grid.Column="2" FontSize="12" Foreground="{DynamicResource SemiGrey5}" HorizontalAlignment="Right"></TextBlock>
+          </Grid>
       </StackPanel>
       <StackPanel Classes="FormItem">
           <TextBlock Text="旋转角度"></TextBlock>
@@ -34,9 +67,13 @@
               <TextBlock Text="180°" Grid.Row="2" Grid.Column="2" FontSize="12" Foreground="{DynamicResource SemiGrey5}" HorizontalAlignment="Right"></TextBlock>
           </Grid>
       </StackPanel>
-      <StackPanel Classes="FormItem">
+      <StackPanel Classes="FormItem" IsVisible="{Binding WatermarkTextItemVisible}">
           <TextBlock Text="字号"></TextBlock>
           <NumericUpDown Increment="1" FormatString="F0" Value="{Binding MarkTextSize}" Minimum="1" Maximum="1000"/>
+      </StackPanel>
+      <StackPanel Classes="FormItem" IsVisible="{Binding WatermarkImgItemVisible}">
+          <TextBlock Text="水印图片缩放倍数"></TextBlock>
+          <NumericUpDown Increment="1" FormatString="0.00" Value="{Binding WatermarkImgScaleFactor}" Minimum="0.01" Maximum="50"/>
       </StackPanel>
       <StackPanel Classes="FormItem">
           <TextBlock Text="位置模式"></TextBlock>

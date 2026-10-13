@@ -60,6 +60,7 @@ namespace SealMark.App.ViewModels
             _storageProvider = storageProvider;
             _notificationManager = notificationManager;
             _notificationManager.Position = NotificationPosition.BottomCenter;
+            _watermarkProperty.StorageProvider = storageProvider;
         }
         public MainWindowViewModel()
         {
@@ -221,12 +222,16 @@ namespace SealMark.App.ViewModels
                     context.DrawImage(sourceBitmap, new Rect(0, 0, imageSize.Width, imageSize.Height));
                     //再画水印
                     WatermarkHelper.DrawWatermark(context, new WatermarkParameter(
+                    WatermarkProperty.WatermarkTypeIndex, 
                     WatermarkProperty.WatermarkText,
+                    WatermarkProperty.WatermarkImg,
                     new SolidColorBrush(WatermarkProperty.MarkColor),
                     WatermarkProperty.MarkRotation,
                     (double)WatermarkProperty.MarkTextSize!.Value,
                     WatermarkProperty.MarkPlacementMode, imageSize, imageSize,
-                    WatermarkProperty.XGap!.Value,WatermarkProperty.YGap!.Value
+                    WatermarkProperty.XGap!.Value,WatermarkProperty.YGap!.Value,
+                    WatermarkProperty.WatermarkImgScaleFactor!.Value,
+                    WatermarkProperty.WatermarkImgOpacity
                     ));
                 }
                 

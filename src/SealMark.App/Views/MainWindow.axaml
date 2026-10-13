@@ -117,7 +117,9 @@
                                     <!-- 下层：显示缩放后的原图 -->
                                     <Image Source="{Binding PreviewSource}"/>
                                     <control:WatermarkOverlayControl 
+                                        WatermarkTypeIndex="{Binding #MainGrid.DataContext.WatermarkProperty.WatermarkTypeIndex}"
                                         WatermarkText="{Binding #MainGrid.DataContext.WatermarkProperty.WatermarkText}"
+                                        WatermarkImg="{Binding #MainGrid.DataContext.WatermarkProperty.WatermarkImg}"
                                         FontSize="{Binding #MainGrid.DataContext.WatermarkProperty.MarkTextSize}"
                                         TextColor="{Binding #MainGrid.DataContext.WatermarkProperty.MarkColor,Converter={x:Static converter:ColorToSolidBrushConverter.Instance}}"
                                         Angle="{Binding #MainGrid.DataContext.WatermarkProperty.MarkRotation}"
@@ -128,6 +130,8 @@
                                         ActualImageHeight="{Binding PreviewSource.Size.Height}"
                                         TileXGap="{Binding #MainGrid.DataContext.WatermarkProperty.XGap}"
                                         TileYGap="{Binding #MainGrid.DataContext.WatermarkProperty.YGap}"
+                                        WatermarkImgScaleFactor="{Binding #MainGrid.DataContext.WatermarkProperty.WatermarkImgScaleFactor}"
+                                        WatermarkImgOpacity="{Binding #MainGrid.DataContext.WatermarkProperty.WatermarkImgOpacity}"
                                         IsHitTestVisible="False"></control:WatermarkOverlayControl>
                                 </Grid>
                             </Border>
